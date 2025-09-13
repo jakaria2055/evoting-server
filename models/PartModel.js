@@ -1,0 +1,15 @@
+import mongoose from "mongoose";
+
+const partySchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    sign: { type: String }, // store image URL
+    position: { type: String, enum: ["Member", "Chairman", "MP", "VP"] },
+    voteCount: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+
+const Party = mongoose.model("parties", partySchema);
+
+export default Party;
