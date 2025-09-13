@@ -6,12 +6,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     name: { type: String, required: true },
-    votedPositions: [
-      {
-        position: { type: String }, // e.g., "Chairman", "MP", "VP"
-        votedAt: { type: Date, default: Date.now },
-      },
-    ],
+    votedPositions: [{ type: String }],
   },
   { timestamps: true }
 );

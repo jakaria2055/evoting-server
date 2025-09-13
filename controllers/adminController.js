@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import NIDModel from "../models/NIDModel.js";
 import Party from "../models/PartModel.js";
 
-//REGISTER ADMIN
+//*************REGISTER ADMIN**********************
 export const registerAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -41,7 +41,7 @@ export const registerAdmin = async (req, res) => {
   }
 };
 
-//VERIFY ADMIN
+//******************VERIFY ADMIN*********************
 export const verifyAdmin = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -83,7 +83,7 @@ export const verifyAdmin = async (req, res) => {
   }
 };
 
-//LOGIN ADMIN
+//********************LOGIN ADMIN************************
 export const loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -127,7 +127,7 @@ export const loginAdmin = async (req, res) => {
   }
 };
 
-//LOGOUT ADMIN
+//**********************LOGOUT ADMIN***********************************
 export const adminLogoutService = async (req, res) => {
   try {
     const adminId = req.admin?._id; // Assuming you have middleware that sets req.user
@@ -155,8 +155,7 @@ export const adminLogoutService = async (req, res) => {
   }
 };
 
-//ADD NID USER
-// controllers/nidController.js
+//**********************ADD NID USER****************************
 export const addNid = async (req, res) => {
   try {
     const { nidNumber, name } = req.body;
@@ -183,56 +182,137 @@ export const addNid = async (req, res) => {
   }
 };
 
-//ADD PARTY INFORMATION
-// controllers/partyController.js
+//***************GET ALL NID************************
+export const getNID = async (req, res) => {
+  try {
+    const nid = await NIDModel.find();
+
+    if (!nid) {
+      return res.status(400).json({
+        success: false,
+        message: `No Registered NID Found!!!`,
+      });
+    }
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "All Registered NID are founded.",
+        data: nid,
+      });
+  } catch (error) {
+     res
+      .status(500)
+      .json({
+        success: false,
+        message: error.message
+      });
+  }
+};
+
+//****************ADD PARTY INFORMATION**************************
 export const addParties = async (req, res) => {
-   try {
+  try {
     const { name, sign, positions } = req.body;
 
-    if (!name || !positions || positions.length === 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Name and at least one position are required.",
-        });
+    // Validate required fields
+    if (
+      !name ||
+      !positions ||
+      !Array.isArray(positions) ||
+      positions.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Party name and at least one position are required, positions must be an array.",
+      });
     }
 
-    // Validate positions
+    // Allowed positions
     const validPositions = ["Member", "Chairman", "MP", "VP", "GS", "AGS"];
-    const invalidPositions = positions.filter(pos => !validPositions.includes(pos));
-    
+
+    // Validate all positions
+    const invalidPositions = positions.filter(
+      (pos) => !validPositions.includes(pos)
+    );
     if (invalidPositions.length > 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: `Invalid positions: ${invalidPositions.join(", ")}. Valid positions are: ${validPositions.join(", ")}`,
-        });
+      return res.status(400).json({
+        success: false,
+        message: `Invalid positions provided: ${invalidPositions.join(", ")}`,
+      });
     }
 
-    // Remove duplicate positions
-    const uniquePositions = [...new Set(positions)];
-
-    // Create single party record with multiple positions
-    const party = await Party.create({ 
-      name, 
-      sign, 
-      positions: uniquePositions 
+    // Check for duplicates in DB
+    const existingParties = await Party.find({
+      name,
+      position: { $in: positions },
     });
+    const existingPositions = existingParties.map((p) => p.position);
+
+    const newPositions = positions.filter(
+      (pos) => !existingPositions.includes(pos)
+    );
+
+    if (newPositions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: `All provided positions for '${name}' already exist.`,
+      });
+    }
+
+    // Prepare party documents to insert
+    const partiesToInsert = newPositions.map((pos) => ({
+      name,
+      sign,
+      position: pos,
+    }));
+
+    // Insert multiple parties at once
+    const createdParties = await Party.insertMany(partiesToInsert);
 
     res.status(201).json({
       success: true,
-      message: "Party created successfully",
-      party,
+      message: "Parties created successfully.",
+      createdParties,
     });
   } catch (error) {
+    console.error("Error adding parties:", error);
     res
       .status(500)
       .json({
         success: false,
-        message: "Error creating party",
-        error: error.message,
+        message: "Server error. Could not add parties.",
+      });
+  }
+};
+
+//****************GET ALL PARTY*********************************
+export const getParty = async (req, res) => {
+  try {
+    const party = await Party.find();
+
+    if (!party) {
+      return res.status(400).json({
+        success: false,
+        message: `No Party Found!!!`,
+      });
+    }
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "All Parties are founded.",
+        data: party,
+      });
+  } catch (error) {
+     res
+      .status(500)
+      .json({
+        success: false,
+        message: error.message
       });
   }
 };

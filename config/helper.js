@@ -13,3 +13,11 @@ export const generateTokens = (adminId) => {
 
   return { accesstoken };
 };
+
+export const generateUserTokens = (userId) => {
+  const userToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
+
+  return { userToken };
+};
