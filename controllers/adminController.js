@@ -2,6 +2,7 @@ import { generateTokens, verifyOTP } from "../config/helper.js";
 import { sendOTPtoEmail } from "../config/nodemailer.js";
 import Admin from "../models/AdminModel.js";
 import bcrypt from "bcryptjs";
+import NIDModel from "../models/NIDModel.js";
 
 
 //REGISTER ADMIN
@@ -132,13 +133,56 @@ export const loginAdmin = async (req, res) => {
 };
 
 //LOGOUT ADMIN
-export const adminLogoutService = async (userId, accesstoken) => {
-  await Admin.findByIdAndUpdate(
-    userId,
-    { $pull: { refreshtokens: { token: accesstoken } } },
-    { new: true } // return updated document if needed
-  );
+export const adminLogoutService = async (req, res) => {
+  try {
+    const adminId = req.admin?._id; // Assuming you have middleware that sets req.user
+    const accesstoken = req.cookies.accesstoken;
 
-  return { message: "User logged out successfully!" };
+    if (!adminId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    await Admin.findByIdAndUpdate(
+      adminId,
+      { $pull: { refreshtokens: { token: accesstoken } } },
+      { new: true }
+    );
+
+    res.clearCookie("accesstoken");
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Admin logged out successfully!" 
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
 };
+
+
+//ADD NID USER
+// controllers/nidController.js
+export const addNid = async (req, res) => {
+  try {
+    const { nidNumber, name } = req.body;
+
+    // Check if NID already exists
+    const existing = await NIDModel.findOne({ nidNumber });
+    if (existing) {
+      return res.status(400).json({ success:false, message: "This NID is already registered." });
+    }
+
+    const newNid = new NIDModel({ nidNumber, name });
+    await newNid.save();
+
+    res.status(201).json({success:true, message: "NID added successfully", data: newNid });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({success:false, message: "Server error while adding NID" });
+  }
+};
+
+
+
 

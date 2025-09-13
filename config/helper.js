@@ -6,8 +6,8 @@ export const verifyOTP = (otp, user) => {
   return isMatch && notExpired;
 };
 
-export const generateTokens = (userId) => {
-  const accesstoken = jwt.sign({ userId }, process.env.JWT_SECRET, {
+export const generateTokens = (adminId) => {
+  const accesstoken = jwt.sign({ adminId }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
 

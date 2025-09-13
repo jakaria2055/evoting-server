@@ -7,6 +7,12 @@ const superAdminSchema = new mongoose.Schema(
     otp: String,
     otpExpires: Date,
     isVerified: {type:Boolean, default: false},
+    refreshtokens: [
+        {
+            token: {type: String, required: true},
+            expiresAt: {type: String, required: true},
+        },
+    ]
   },
   { timestamps: true }
 );
