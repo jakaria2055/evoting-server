@@ -3,7 +3,7 @@ import { addNid, addParties, adminLogoutService, getNID, getParty, loginAdmin, r
 import { adminAuth } from "../middlewares/adminMiddleware.js";
 import { getPartiesByPosition, loginUser, registerUser, submitVote, userLogout } from "../controllers/userController.js";
 import { userAuth } from "../middlewares/userMiddleware.js";
-import { getVoteResults } from "../controllers/voteController.js";
+import { getAllParties, getVoteResults } from "../controllers/voteController.js";
 
 const router = express.Router();
 
@@ -29,9 +29,11 @@ router.post('/user/logout',userAuth, userLogout);
 router.get('/user/listByPosition/:position',userAuth, getPartiesByPosition);
 router.get('/user/read-party',userAuth, getParty);
 
+router.post('/user/submit-vote/:id/:position',userAuth, submitVote);
+
 router.get('/user/get-result', getVoteResults);
 
-router.post('/user/submit-vote/:id/:position',userAuth, submitVote);
+router.get('/user/getAvailableParty', getAllParties);
 
 
 
