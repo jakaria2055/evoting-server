@@ -1,5 +1,5 @@
 import express from "express";
-import { addNid, adminLogoutService, loginAdmin, registerAdmin, verifyAdmin } from "../controllers/adminController.js";
+import { addNid, addParties, adminLogoutService, loginAdmin, registerAdmin, verifyAdmin } from "../controllers/adminController.js";
 import { adminAuth } from "../middlewares/adminMiddleware.js";
 import { registerUser } from "../controllers/userController.js";
 
@@ -12,6 +12,7 @@ router.post('/admin/login', loginAdmin);
 router.post('/admin/logout',adminAuth, adminLogoutService);
 
 router.post('/admin/add-nid',adminAuth, addNid);
+router.post('/admin/add-party',adminAuth, addParties);
 
 
 

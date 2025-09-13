@@ -4,7 +4,10 @@ const partySchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     sign: { type: String }, // store image URL
-    position: { type: String, enum: ["Member", "Chairman", "MP", "VP"] },
+    positions: [{ 
+      type: String, 
+      enum: ["Member", "Chairman", "MP", "VP", "GS", "AGS"] 
+    }], // Array of positions this party has
     voteCount: { type: Number, default: 0 },
   },
   { timestamps: true }

@@ -3,7 +3,7 @@ import { sendOTPtoEmail } from "../config/nodemailer.js";
 import Admin from "../models/AdminModel.js";
 import bcrypt from "bcryptjs";
 import NIDModel from "../models/NIDModel.js";
-
+import Party from "../models/PartModel.js";
 
 //REGISTER ADMIN
 export const registerAdmin = async (req, res) => {
@@ -40,9 +40,6 @@ export const registerAdmin = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
-
-
-
 
 //VERIFY ADMIN
 export const verifyAdmin = async (req, res) => {
@@ -86,7 +83,6 @@ export const verifyAdmin = async (req, res) => {
   }
 };
 
-
 //LOGIN ADMIN
 export const loginAdmin = async (req, res) => {
   try {
@@ -114,7 +110,6 @@ export const loginAdmin = async (req, res) => {
     }
 
     const { accesstoken } = generateTokens(admin?._id);
-
 
     res.cookie("accesstoken", accesstoken, {
       httpOnly: false,
@@ -150,16 +145,15 @@ export const adminLogoutService = async (req, res) => {
 
     res.clearCookie("accesstoken");
 
-    return res.status(200).json({ 
-      success: true, 
-      message: "Admin logged out successfully!" 
+    return res.status(200).json({
+      success: true,
+      message: "Admin logged out successfully!",
     });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
   }
 };
-
 
 //ADD NID USER
 // controllers/nidController.js
@@ -170,19 +164,75 @@ export const addNid = async (req, res) => {
     // Check if NID already exists
     const existing = await NIDModel.findOne({ nidNumber });
     if (existing) {
-      return res.status(400).json({ success:false, message: "This NID is already registered." });
+      return res
+        .status(400)
+        .json({ success: false, message: "This NID is already registered." });
     }
 
     const newNid = new NIDModel({ nidNumber, name });
     await newNid.save();
 
-    res.status(201).json({success:true, message: "NID added successfully", data: newNid });
+    res
+      .status(201)
+      .json({ success: true, message: "NID added successfully", data: newNid });
   } catch (error) {
     console.error(error);
-    res.status(500).json({success:false, message: "Server error while adding NID" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error while adding NID" });
   }
 };
 
+//ADD PARTY INFORMATION
+// controllers/partyController.js
+export const addParties = async (req, res) => {
+   try {
+    const { name, sign, positions } = req.body;
 
+    if (!name || !positions || positions.length === 0) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Name and at least one position are required.",
+        });
+    }
 
+    // Validate positions
+    const validPositions = ["Member", "Chairman", "MP", "VP", "GS", "AGS"];
+    const invalidPositions = positions.filter(pos => !validPositions.includes(pos));
+    
+    if (invalidPositions.length > 0) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: `Invalid positions: ${invalidPositions.join(", ")}. Valid positions are: ${validPositions.join(", ")}`,
+        });
+    }
 
+    // Remove duplicate positions
+    const uniquePositions = [...new Set(positions)];
+
+    // Create single party record with multiple positions
+    const party = await Party.create({ 
+      name, 
+      sign, 
+      positions: uniquePositions 
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Party created successfully",
+      party,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Error creating party",
+        error: error.message,
+      });
+  }
+};
