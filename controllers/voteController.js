@@ -44,12 +44,48 @@ export const getVoteResults = async (req, res) => {
 //AVAILABLE PARTY LIST
 export const getAllParties = async (req, res) => {
   try {
-    // Fetch distinct party names
+    // Method 1: Simple approach using regular find
+    const allParties = await Party.find({})
+      .select('name sign')
+      .lean(); // Use lean for better performance
+
+    // Remove duplicates manually (more reliable than aggregation)
+    const uniqueParties = [];
+    const seenNames = new Set();
+
+    for (const party of allParties) {
+      if (!seenNames.has(party.name)) {
+        seenNames.add(party.name);
+        uniqueParties.push({
+          name: party.name,
+          sign: party.sign
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      total: uniqueParties.length,
+      parties: uniqueParties
+    });
+  } catch (error) {
+    console.error("Error fetching parties:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch parties",
+      error: error.message
+    });
+  }
+};
+
+// Alternative Method (if you want to stick with aggregation)
+export const getAllPartiesWithAggregation = async (req, res) => {
+  try {
     const parties = await Party.aggregate([
       {
         $group: {
-          _id: "$name", // Group by party name
-          sign: { $first: "$sign" } // Get the first sign (logo)
+          _id: "$name",
+          sign: { $first: "$sign" }
         }
       },
       {
@@ -59,7 +95,7 @@ export const getAllParties = async (req, res) => {
           sign: 1
         }
       }
-    ]);
+    ]).allowDiskUse(true); // Add this option for large datasets
 
     res.status(200).json({
       success: true,
