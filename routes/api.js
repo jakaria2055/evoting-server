@@ -33,6 +33,9 @@ router.post('/user/submit-vote/:id/:position',userAuth, submitVote);
 
 router.get('/user/get-result', getVoteResults);
 
+
+
+
 router.get('/user/getAvailableParty', getAllParties);
 
 
