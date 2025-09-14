@@ -113,11 +113,10 @@ export const loginAdmin = async (req, res) => {
 
     const { accesstoken } = generateTokens(admin?._id);
 
-    // Updated cookie settings for cross-origin
     res.cookie("accesstoken", accesstoken, {
       httpOnly: false,
       secure: true,
-      sameSite: "None", // Changed from "Strict" to "None" for cross-origin
+      sameSite: "Strict",
       maxAge: 1 * 24 * 60 * 60 * 1000,
     });
 
