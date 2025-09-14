@@ -34,8 +34,10 @@ export const registerAdmin = async (req, res) => {
       otpExpires,
     });
 
+
     await newAdmin.save();
     await sendOTPtoEmail(email, otp);
+    res.json({ success: true, message:"OTP sen successfully" });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
