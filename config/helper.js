@@ -15,9 +15,9 @@ export const generateTokens = (adminId) => {
 };
 
 export const generateUserTokens = (userId) => {
-  const userToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
+  const usertoken = jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
 
-  return { userToken };
+  return { usertoken };
 };

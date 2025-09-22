@@ -75,9 +75,9 @@ export const loginUser = async (req, res) => {
         .json({ success: false, message: "Invalid Credential" });
     }
 
-    const { userToken } = generateUserTokens(user?._id);
+    const { usertoken } = generateUserTokens(user?._id);
 
-    res.cookie("userToken", userToken, {
+    res.cookie("usertoken", usertoken, {
       httpOnly: false,
       secure: true,
       sameSite: "Strict",
@@ -86,7 +86,7 @@ export const loginUser = async (req, res) => {
 
     return res
       .status(200)
-      .json({ success: true, userToken, message: "User login success." });
+      .json({ success: true, usertoken, message: "User login success." });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -97,7 +97,7 @@ export const loginUser = async (req, res) => {
 export const userLogout = async (req, res) => {
   try {
     const userId = req.user?._id;
-    const userToken = req.cookies.userToken;
+    const usertoken = req.cookies.usertoken;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -105,11 +105,11 @@ export const userLogout = async (req, res) => {
 
     await User.findByIdAndUpdate(
       userId,
-      { $pull: { refreshtokens: { token: userToken } } },
+      { $pull: { refreshtokens: { token: usertoken } } },
       { new: true }
     );
 
-    res.clearCookie("userToken");
+    res.clearCookie("usertoken");
 
     return res.status(200).json({
       success: true,
