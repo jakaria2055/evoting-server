@@ -1,7 +1,7 @@
 import express from "express";
 import { addNid, addParties, adminLogoutService, getNID, getParty, loginAdmin, registerAdmin, verifyAdmin } from "../controllers/adminController.js";
 import { adminAuth } from "../middlewares/adminMiddleware.js";
-import { getPartiesByPosition, loginUser, registerUser, submitVote, userLogout } from "../controllers/userController.js";
+import { getPartiesByPosition, loginUser, registerNID, registerUser, submitVote, userLogout } from "../controllers/userController.js";
 import { userAuth } from "../middlewares/userMiddleware.js";
 import { getAllParties, getVoteResults } from "../controllers/voteController.js";
 
@@ -30,10 +30,10 @@ router.get('/user/listByPosition/:position',userAuth, getPartiesByPosition); //o
 router.get('/user/read-party',userAuth, getParty); //okk
 
 router.post('/user/submit-vote/:id/:position',userAuth, submitVote); //okk
-
 router.get('/user/get-result', getVoteResults); //okk
-
 router.get('/user/getAvailableParty', getAllParties); //okk
+
+router.post('/user/register-nid', registerNID);
 
 
 

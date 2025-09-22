@@ -4,6 +4,7 @@ import Party from "../models/PartModel.js";
 import User from "../models/UserModel.js";
 import bcrypt from "bcryptjs";
 import Vote from "../models/VoteModel.js";
+import { sendNIDtoAdminEmail } from "../config/nidNodemialer.js";
 
 //******************REGISTER USER*********************
 export const registerUser = async (req, res) => {
@@ -153,47 +154,46 @@ export const submitVote = async (req, res) => {
     const position = req.params.position;
     const userId = req.user._id;
 
-
     // Find and validate party
     const party = await Party.findById(partyId);
     if (!party) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Party not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Party not found",
       });
     }
 
     // Check if party has this position
     if (party.position !== position) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `This party doesn't have the position: ${position}` 
+      return res.status(400).json({
+        success: false,
+        message: `This party doesn't have the position: ${position}`,
       });
     }
 
     // Find user
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "User not found" 
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
       });
     }
 
     // Check if user already voted for this position
     if (user.votedPositions.includes(position)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `You already voted for ${position}` 
+      return res.status(400).json({
+        success: false,
+        message: `You already voted for ${position}`,
       });
     }
 
     // Check if vote already exists (double prevention)
     const existingVote = await Vote.findOne({ userId, position });
     if (existingVote) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `You already voted for ${position}` 
+      return res.status(400).json({
+        success: false,
+        message: `You already voted for ${position}`,
       });
     }
 
@@ -209,21 +209,20 @@ export const submitVote = async (req, res) => {
     await user.save();
 
     res.status(201).json({
-      success: true, 
+      success: true,
       message: `Vote submitted successfully for ${position}!`,
       vote: {
         partyName: party.name,
         position,
-        votedAt: vote.createdAt
-      }
+        votedAt: vote.createdAt,
+      },
     });
-
   } catch (error) {
     console.error("Vote submission error:", error);
     res.status(500).json({
-      success: false, 
+      success: false,
       message: "Error submitting vote",
-      error: error.message 
+      error: error.message,
     });
   }
 };
@@ -241,7 +240,9 @@ export const getPartiesByPosition = async (req, res) => {
     if (!validPositions.includes(position)) {
       return res.status(400).json({
         success: false,
-        message: `Invalid position '${position}'. Valid positions are: ${validPositions.join(", ")}`
+        message: `Invalid position '${position}'. Valid positions are: ${validPositions.join(
+          ", "
+        )}`,
       });
     }
 
@@ -251,7 +252,7 @@ export const getPartiesByPosition = async (req, res) => {
     if (parties.length === 0) {
       return res.status(404).json({
         success: false,
-        message: `No parties found for position: ${position}`
+        message: `No parties found for position: ${position}`,
       });
     }
 
@@ -259,13 +260,48 @@ export const getPartiesByPosition = async (req, res) => {
       success: true,
       total: parties.length,
       position,
-      parties
+      parties,
     });
   } catch (error) {
     console.error("Error fetching parties by position:", error);
     res.status(500).json({
       success: false,
-      message: "Server error. Could not fetch parties by position."
+      message: "Server error. Could not fetch parties by position.",
     });
+  }
+};
+
+//******************REGISTER NID******************
+export const registerNID = async (req, res) => {
+  try {
+    const { email, nidNumber, name } = req.body;
+
+    if (!email || !nidNumber || !name) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "All credential are required are required",
+        });
+    }
+
+    const existingNID = await NIDModel.findOne({ nidNumber });
+
+    if (existingNID) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "This NID Number Already registered",
+        });
+    }
+
+    await sendNIDtoAdminEmail(email, nidNumber, name);
+    res.json({
+      success: true,
+      message: "NID register request sent successfully",
+    });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
 };
