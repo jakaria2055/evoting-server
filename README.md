@@ -3,6 +3,8 @@
 A **Node.js + Express** based REST API for managing a **secure online voting system**.  
 This system includes **Admin** and **User** modules, enabling **NID management, party management, user registration, voting, and result generation**.
 
+<h4>For test the live server: </h4>
+<h5>https://evoting-server-pi.vercel.app/api/v1/user/get-result</h5>
 ---
 
 ## 🚀 Features
